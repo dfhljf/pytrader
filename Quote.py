@@ -14,6 +14,14 @@ class Tick(object):
         self.accuturnover=accuturnover
         self.openint=openint
 
+class Level(object):
+    def __init__(self,acsycode):
+        self.acsycode=acsycode
+        self.bid={}
+        self.ask={}
+    def update(self,tick):
+        
+
 class Bar(object):
     def __init__(self,code,start,end,vol_start):
         self.code=code
@@ -55,12 +63,12 @@ class BarList(object):
         self.timescale=timescale
         self.barlist=Type.Series()
         self.datetime=[]
-        self.open=[]
-        self.high=[]
-        self.low=[]
-        self.close=[]
-        self.volume=[]
-        self.openint=[]
+        self.open=Type.Series()
+        self.high=Type.Series()
+        self.low=Type.Series()
+        self.close=Type.Series()
+        self.volume=Type.Series()
+        self.openint=Type.Series()
     def update(self,tick):
         if self.barlist.isempty():
             bar=self.__new_bar__(tick.code,tick.datetime,0)
@@ -86,12 +94,12 @@ class BarList(object):
         bar=self.barlist[0]
         if is_insert:
             self.datetime.insert(0,bar.dt_start)
-            self.open.insert(0,bar.open)
-            self.high.insert(0,bar.high)
-            self.low.insert(0,bar.low)
-            self.close.insert(0,bar.close)
-            self.volume.insert(0,bar.volume)
-            self.openint.insert(0,bar.openint)
+            self.open.push(bar.dt_start,bar.open)
+            self.high.push(bar.dt_start,bar.high)
+            self.low.push(bar.dt_start,bar.low)
+            self.close.push(bar.dt_start,bar.close)
+            self.volume.push(bar.dt_start,bar.volume)
+            self.openint.push(bar.dt_start,bar.openint)
         else:
             self.high[0]=bar.high
             self.low[0]=bar.low
@@ -108,7 +116,7 @@ class Quote(object):
                             {'start':dt.date(2015,1,1),
                             'end':dt.date(2016,1,1),
                             'timescale':dt.timedelta(minute=5),
-                            'source':'F_L_[ExchangeData_1D,ACSYRTData]',
+                            'source':'F_L_[ExchangeData_1D,ACSYRTData,csv]',
                             'dealna':'remove[fill]'
                             }
                    }"""
