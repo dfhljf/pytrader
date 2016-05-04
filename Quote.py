@@ -126,3 +126,4 @@ class Quote(object):
         self.datamap[attr]
     def __load_history__(self):
         pass
+
