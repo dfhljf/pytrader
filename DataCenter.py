@@ -2,10 +2,11 @@ import pymssql;
 from sqlalchemy import *;
 import Quote
 import datetime as dt;
+import pandas as pd;
 
 class DataCenter(object):
 	def __init__(self):
-		self.dbconn=pymssql.connect(server='server03',user='strat01',password='ACSYstrat01',database='FTBDB')
+		self.dbconn=create_engine('mssql+pymssql://STRAT01:ACSYstrat01@SERVER03/FTBDB')
 		self.sourceinfo={\
 							'Tick':\
 							{\
