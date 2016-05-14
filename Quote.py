@@ -2,6 +2,7 @@ import datetime as dt;
 #from DataCenter import DataCenter;
 import Type;
 import math;
+import pandas as pd;
 
 class Tick(object):
     def __init__(self,code,datetime,lastprice,bid,ask,accuvol,accuturnover,openint):
@@ -61,18 +62,18 @@ class BarList(object):
     def __init__(self,acsycode,timescale):
         self.acsycode=acsycode
         self.timescale=timescale
-        self.barlist=Type.Series()
+        self.barlist=pd.Series()
         self.datetime=[]
-        self.open=Type.Series()
-        self.high=Type.Series()
-        self.low=Type.Series()
-        self.close=Type.Series()
-        self.volume=Type.Series()
-        self.openint=Type.Series()
+        self.open=pd.Series()
+        self.high=pd.Series()
+        self.low=pd.Series()
+        self.close=pd.Series()
+        self.volume=pd.Series()
+        self.openint=pd.Series()
     def update(self,tick):
         if self.barlist.isempty():
             bar=self.__new_bar__(tick.code,tick.datetime,0)
-            self.barlist.push(bar.dt_start,bar)
+            self.barlist.append(pd.Series(data=[bar],index=bar.dt_start))
             self.__sync__(True)
         while not self.barlist[0].update(tick):
             accuvol=self.barlist[0].vol_start+self.barlist[0].volume

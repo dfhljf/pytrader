@@ -1,3 +1,6 @@
+import pandas as pd;
+
+
 class Series(object):
     def __init__(self,value=None):
         if type(value)==dict:
@@ -21,6 +24,8 @@ class Series(object):
         self.__length__+=1
     def isempty(self):
         return self.__length__==0
+    def to_series(self):
+        return pd.Series(data=self.__values__,index=self.__keys__.keys())
 class OrderedDict(object):
     def __init__(self,value=None):
         if value==None:
