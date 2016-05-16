@@ -1,17 +1,9 @@
-from Dict import *;
+from DataCenter import DataCenter;
+import datetime as dt;
 
 def main():
-    x=Dict({(0,'a'):'b',(1,'c'):'d'})
-    x.a='1'
-    print(x[0])
-    print(x['a'])
-    y=x+{'k':'x'}
-    z={'k':'x'}+x
-    x+={'k':'x'}
-    for (k,v) in x.items():
-        print('{0},{1}'.format(k,v))
-    
-    
+    dc=DataCenter()
+    dc.getBarList({'SHFAG9000':{'TimeScale':dt.timedelta(seconds=5*60),'Date':(dt.date(2010,1,1),dt.date(2016,5,13)),'Source':'Tick','DealNA':'Remove','Format':'DataFrame'}})
     pass
 if __name__ == '__main__':
     main()
