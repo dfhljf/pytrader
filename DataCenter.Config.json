@@ -1,0 +1,23 @@
+{
+    "CachePath": "Cache",
+    "UseCache": true,
+    "DataBase":
+    {
+        "User":"Strat01",
+        "Password":"ACSYstrat01"
+    },
+    "SourceInfo": {
+        "Tick": {
+            "Table": "F_L_",
+            "TimeScale": ["1m","5m","15m","1h"]
+        },
+        "Exchange": {
+            "Table": "ExchangeData_",
+            "TimeScale": ["1D"]
+        },
+        "TradeBlazer": {
+            "Table": "TBData_",
+            "TimeScale": ["1D"]
+        }
+    }
+}
