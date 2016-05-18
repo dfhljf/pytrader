@@ -1,12 +1,25 @@
 import datetime as dt;
-#from DataCenter import DataCenter;
+from DataCenter import DataCenter;
 import Type;
 import math;
-import pandas as pd;
+
+class Util(object):
+	exchangemap={}
+	@staticmethod
+	def FormatCode(code):
+		return (code if str.isdigit(code[-4]) else code[:-3]+'1'+code[-3:]).upper()
+	@staticmethod
+	def GetAcsyCode(code,Exchange):
+		return Exchange+code
+	@classmethod
+	def FormatExchange(cls,Exchange):
+		return cls.exchangemap[Exchange]
 
 class Tick(object):
-	def __init__(self,code,datetime,lastprice,bid,ask,accuvol,accuturnover,openint):
-		self.code=code
+	def __init__(self,exchange,code,datetime,lastprice,bid,ask,accuvol,accuturnover,openint):
+		self.exchange=Util.FormatExchange(exchange)
+		self.code=Util.FormatCode(code)
+		self.acsycode=Util.GetAcsyCode(self.code,self.exchange)
 		self.datetime=datetime
 		self.lastprice=lastprice
 		self.bid=bid
@@ -30,7 +43,7 @@ class Bar(object):
 		self.dt_end=end
 		self.vol_start=vol_start
 		self.__is_init__=False
-	def setvalue(op,high,low,close,volume,openint):
+	def setvalue(self,op,high,low,close,volume,openint):
 		self.open=op
 		self.high=high
 		self.low=low
@@ -38,7 +51,6 @@ class Bar(object):
 		self.volume=volume
 		self.openint=openint
 	def update(self,tick):
-		assert type(tick)==Quote.Tick
 		if tick.code!=self.code:
 			raise Exception('code don\'t match!')
 		if now>=self.dt_end:
@@ -62,28 +74,27 @@ class BarList(object):
 	def __init__(self,acsycode,timescale):
 		self.acsycode=acsycode
 		self.timescale=timescale
-		self.barlist=pd.Series()
+		self.barlist=Type.Series()
 		self.datetime=[]
-		self.open=pd.Series()
-		self.high=pd.Series()
-		self.low=pd.Series()
-		self.close=pd.Series()
-		self.volume=pd.Series()
-		self.openint=pd.Series()
+		self.open=Type.Series()
+		self.high=Type.Series()
+		self.low=Type.Series()
+		self.close=Type.Series()
+		self.volume=Type.Series()
+		self.openint=Type.Series()
 	def update(self,tick):
 		if self.barlist.isempty():
 			bar=self.__new_bar__(tick.code,tick.datetime,0)
-			self.barlist.append(pd.Series(data=[bar],index=bar.dt_start))
+			self.barlist.push(bar.dt_start,bar)
 			self.__sync__(True)
 		while not self.barlist[0].update(tick):
 			accuvol=self.barlist[0].vol_start+self.barlist[0].volume
 			bar=self.__new_bar__(tick.code,self.barlist[0].dt_end,accuvol if tick.accuvol>=accuvol else 0)
-			bar.setvalue(self.barlist[0].open,self.barlist[0].high,self.barlist[0].low,self.barlist[0].close,accuvol,self.barlist[0].openint)
+			bar.setvalue(self.barlist[0].open,self.barlist[0].high,self.barlist[0].low,self.barlist[0].close,self.barlist[0].volume,self.barlist[0].openint)
 			self.barlist.push(bar.dt_start,bar)  
 			self.__sync__(True)
 		self.__sync__(False)     
 	def push(self,bar):
-		assert type(bar)==Quote.Bar
 		self.barlist.push(bar.dt_start,bar)
 		self.__sync__(True)
 	def __new_bar__(self,code,datetime,vol_start):
@@ -113,18 +124,15 @@ class BarList(object):
 
 class Quote(object):
 	def __init__(self,codemap):
-		"""codemap={'SHFRB1610':
-							{'start':dt.date(2015,1,1),
-							'end':dt.date(2016,1,1),
-							'timescale':dt.timedelta(minute=5),
-							'source':'F_L_[ExchangeData_1D,ACSYRTData,csv]',
-							'dealna':'remove[fill]'
-							}
-				   }"""
-		assert type(codelist)==dict
+		self.codemap=codemap
+		self.codeset=set(self.codemap.keys())
+		self.dc=DataCenter()
 		self.__load_history__()
-	def __getattr__(self,attr):
-		self.datamap[attr]
 	def __load_history__(self):
-		pass
-
+		self.Data=self.dc.getBarList(self.codemap)
+		#load missing today data, not implement
+	def __getitem__(self,index):
+		return self.Data[index]
+	def update(self,tick):
+		if tick.acsycode in self.codeset:
+			self.Data[tick.acsycode].update(tick)

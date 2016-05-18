@@ -1,6 +1,6 @@
 import pymssql;
 from sqlalchemy import *;
-# import Quote
+import Quote
 import datetime
 import pandas as pd;
 # import Type;
@@ -17,29 +17,35 @@ class DataCenter(object):
 		self.codeinfo=self.__getCodeInfo__()
 
 	def getBarList(self,description):
-		'''{'CFEIF9000':{'TimeScale':dt.timedelta,'Date':(dt.date(),dt.date()),'Source':,'DealNA','Format':'DataFrame'}}'''
 		rtn={}
+		pivot=pd.DataFrame()
 		for k,v in description.items():
 			rtn[k]=self.__getBarList__(k,v)
-			
+			if v['Format']=='Pivot':
+				x=rtn.pop(k)
+				x['Datetime']=x.index
+				if pivot.empty:
+					pivot=x
+				else:
+					pivot=pd.concat([pivot,x])
+		# pivot all 
+		rtn['Open']=pivot.pivot('Datetime','AcsyCode','OpenPrice')
+		rtn['High']=pivot.pivot('Datetime','AcsyCode','HighPrice')
+		rtn['Low']=pivot.pivot('Datetime','AcsyCode','LowPrice')
+		rtn['Close']=pivot.pivot('Datetime','AcsyCode','ClosePrice')
+		rtn['Volume']=pivot.pivot('Datetime','AcsyCode','Volume')
+		rtn['OpenInt']=pivot.pivot('Datetime','AcsyCode','OpenInterest')	
 		return rtn    
 		
 	def getLevel(self,description):
 		'''{'CFEIF9000':{'Aggressor':True,'BuySell':'',['']}}'''    
 		pass
-	# def __check__(self,value,type='BarList'):
-	#     if type=='BarList':
-	#         paramslist=['TimeScale','Date','Source','DealNA']
-	#         for k,v in value.items():
-				
-	#     elif type=='Level':
-	#     else:
-	#         raise Exception('check type isn\'t exist!')
 	def __getBarList__(self,code,info):
 		# choose time scale
 		datasource=self.sourceinfo[info['Source']]
 		tablename=datasource['Table']
 		bestvalue=info['TimeScale']/datetime.timedelta(seconds=1*60)
+		bestkey=datetime.timedelta(seconds=1*60)
 		
 		for k,v in datasource['TimeScale'].items():
 			value=info['TimeScale']/k
@@ -55,16 +61,18 @@ class DataCenter(object):
 			rtn=pd.read_sql_query('exec ConvertTimeScale N\'{acsycode}\',N\'{fro}\',{to},N\'{start}\',N\'{end}\''.format(\
 			acsycode=code,fro=datasource['TimeScale'][bestkey],to=info['TimeScale'].total_seconds()*2,start=info['Date'][0].strftime('%Y-%m-%d'),end=info['Date'][1].strftime('%Y-%m-%d')),self.dbconn)
 		else:
-			rtn=pd.read_sql_query('select * from {tablename} where AcsyCode=N\'{acsycode}\' and Date>=N\'{start}\' and Date<=N\'{end}\' order by Date'.format(tablename=tablename,\
+			rtn=pd.read_sql_query('select * from {tablename} where AcsyCode=N\'{acsycode}\' and Date>=N\'{start}\' and Date<=N\'{end}\' order by Date'.format(tablename=tablename+datasource['TimeScale'][bestkey],\
 			acsycode=code,start=info['Date'][0].strftime('%Y-%m-%d'),end=info['Date'][1].strftime('%Y-%m-%d')),self.dbconn)
+			rtn['Time']='000000000'
 		
 		# calculate volume
-		index=list(rtn.index[[True]+list(rtn['Date'][1:]!=rtn['Date'][:-1])])+[len(rtn)]
-		for x in range(0,len(index)-1):
-			rtn.loc[index[x]:index[x+1]-1,'AccuBargainAmount']=rtn.loc[index[x]:index[x+1]-1,'AccuBargainAmount'].interpolate()
-		rtn['Volume']=[0]+list(rtn['AccuBargainAmount'][1:].values-rtn['AccuBargainAmount'][:-1].values)
-		index.pop(len(index)-1)
-		rtn.loc[index,'Volume']=rtn.loc[index,'AccuBargainAmount']
+		if info['TimeScale']<=datetime.timedelta(days=1):
+			index=list(rtn.index[[True]+list(rtn['Date'][1:]!=rtn['Date'][:-1])])+[len(rtn)]
+			for x in range(0,len(index)-1):
+				rtn.loc[index[x]:index[x+1]-1,'AccuBargainAmount']=rtn.loc[index[x]:index[x+1]-1,'AccuBargainAmount'].interpolate()
+			rtn['Volume']=[0]+list(rtn['AccuBargainAmount'][1:].values-rtn['AccuBargainAmount'][:-1].values)
+			index.pop(len(index)-1)
+			rtn.loc[index,'Volume']=rtn.loc[index,'AccuBargainAmount']
 		
 		# deal na
 		if info['DealNA']=='Remove':
@@ -77,10 +85,9 @@ class DataCenter(object):
 		rtn=rtn[['Code','AcsyCode','OpenPrice','HighPrice','LowPrice','ClosePrice','Volume','OpenInterest']]
 		
 		# format output
-		if info['Format']=='BarList':
+		if info['Format'] in {'BarList'}:
 			rtn=self.__convertToBarList__(rtn,code,info)
-		elif info['Format']=='Pivot':
-			pass
+
 		return rtn
 	def __convertToBarList__(self,df,code,info):
 		df['dt_start']=df.index
@@ -89,7 +96,7 @@ class DataCenter(object):
 		rtn=Quote.BarList(code,info['TimeScale'])
 		
 		for x in tmp:
-			bar=Bar(code,x[-2],x[-1],0)
+			bar=Quote.Bar(code,x[-2],x[-1],0)
 			bar.setvalue(*x[2:-2])
 			rtn.push(bar)
 		return rtn

@@ -4,11 +4,11 @@ class Trader(object):
         pass
     def Buy(code,lots,price,type='Market'):
         pass
-    def Sell(lots,price,type='Market'):
+    def Sell(code,lots,price,type='Market'):
         pass
-    def SellShort(lots,Price):
+    def SellShort(code,lots,Price):
         pass
-    
-class StrategyTrader(object):
+    def SetPosition    
+class StrategyTrader(Trader):
     def __init__(self,stratinfo):
         
