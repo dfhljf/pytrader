@@ -6,6 +6,7 @@ import pandas as pd;
 import os;
 import json;
 
+
 class DataCenter(object):
 	def __init__(self):
 		self.config=self.__getConfig__()
