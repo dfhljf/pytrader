@@ -1,0 +1,1 @@
+{'TradeBlazer': {'TimeScale': {datetime.timedelta(1): '1D'}, 'Table': 'TBData_'}, 'Tick': {'TimeScale': {datetime.timedelta(0, 900): '15m', datetime.timedelta(0, 3600): '1h', datetime.timedelta(0, 300): '5m', datetime.timedelta(0, 60): '1m'}, 'Table': 'F_L_'}, 'Exchange': {'TimeScale': {datetime.timedelta(1): '1D'}, 'Table': 'ExchangeData_'}}

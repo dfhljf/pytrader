@@ -5,17 +5,17 @@ import json;
 
 def main():
     quote=Quote({'SHFAG9000':
-    {'TimeScale':dt.timedelta(days=1),
+    {'TimeScale':dt.timedelta(seconds=1*60),
     'Date':(dt.date(2010,1,1),dt.date(2016,5,13)),
-    'Source':'Exchange',
+    'Source':'Tick',
     'DealNA':'Fill',
-    'Format':'Pivot'},
+    'Format':'BarList'},
     'SHFAU9000':
-    {'TimeScale':dt.timedelta(days=1),
+    {'TimeScale':dt.timedelta(seconds=1*60),
     'Date':(dt.date(2010,1,1),dt.date(2016,5,13)),
-    'Source':'Exchange',
+    'Source':'Tick',
     'DealNA':'Fill',
-    'Format':'Pivot'}})
+    'Format':'BarList'}})
     
     pass
 if __name__ == '__main__':

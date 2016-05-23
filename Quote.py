@@ -129,7 +129,7 @@ class Quote(object):
 		self.dc=DataCenter()
 		self.__load_history__()
 	def __load_history__(self):
-		self.Data=self.dc.getBarList(self.codemap)
+		self.Data=self.dc.getBarData(self.codemap)
 		#load missing today data, not implement
 	def __getitem__(self,index):
 		return self.Data[index]
